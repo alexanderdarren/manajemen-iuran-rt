@@ -1,9 +1,3 @@
-/**
- * firebase.js
- * Inisialisasi Firebase SDK (modular v9+).
- * Konfigurasi dibaca dari environment variable (VITE_FIREBASE_*).
- */
-
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 

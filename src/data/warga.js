@@ -1,10 +1,3 @@
-/**
- * warga.js
- * CRUD data warga RT (Async Firestore).
- * Setiap warga punya nominal_iuran yang diinput manual —
- * tidak dikalkulasi otomatis dari luas tanah.
- */
-
 import { getItem, saveDoc, deleteDocById } from './storage.js';
 
 const KEY = 'warga';

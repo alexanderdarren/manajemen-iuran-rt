@@ -1,14 +1,3 @@
-/**
- * tagihan.js
- * Logika generate dan baca tagihan bulanan (Async Firestore).
- *
- * Alur:
- * 1. Admin klik "Generate Tagihan" untuk bulan tertentu.
- * 2. Sistem membuat record TagihanBulanan untuk setiap warga aktif,
- *    mengambil nominal_iuran dari data warga SAAT ITU.
- * 3. Tiap tagihan punya 1 record Pembayaran dengan status awal 'belum'.
- */
-
 import { getItem, saveDocsBatch } from './storage.js';
 import { getWarga } from './warga.js';
 

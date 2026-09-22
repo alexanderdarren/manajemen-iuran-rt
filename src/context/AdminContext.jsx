@@ -1,11 +1,3 @@
-/**
- * AdminContext.jsx
- * Context untuk manajemen mode Admin (PIN-based).
- * - Read-only secara default untuk semua pengunjung
- * - Admin mode aktif setelah PIN benar dimasukkan
- * - Session disimpan di sessionStorage (logout otomatis saat tab ditutup)
- */
-
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const AdminContext = createContext(null);
@@ -30,7 +22,7 @@ export function AdminProvider({ children }) {
     }
     if (String(pin).trim() === String(correctPin).trim()) {
       setIsAdmin(true);
-      try { sessionStorage.setItem(SESSION_KEY, 'true'); } catch {}
+      try { sessionStorage.setItem(SESSION_KEY, 'true'); } catch { }
       return true;
     }
     return false;
@@ -38,7 +30,7 @@ export function AdminProvider({ children }) {
 
   function logoutAdmin() {
     setIsAdmin(false);
-    try { sessionStorage.removeItem(SESSION_KEY); } catch {}
+    try { sessionStorage.removeItem(SESSION_KEY); } catch { }
   }
 
   return (

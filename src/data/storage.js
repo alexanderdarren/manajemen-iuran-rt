@@ -1,13 +1,3 @@
-/**
- * storage.js
- * Storage layer untuk Firestore (dengan fallback localStorage jika .env belum diisi).
- *
- * Struktur koleksi Firestore:
- * - 'warga'      : tiap dokumen = 1 warga (id dokumen = id warga)
- * - 'tagihan'    : tiap dokumen = 1 tagihan bulanan (id dokumen = id tagihan)
- * - 'pembayaran' : tiap dokumen = 1 pembayaran (id dokumen = id pembayaran)
- */
-
 import { db, isFirebaseConfigured } from '../firebase.js';
 import {
   collection,

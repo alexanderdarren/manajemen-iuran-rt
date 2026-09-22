@@ -1,17 +1,3 @@
-/**
- * kas.js
- * Kalkulasi kas bulanan RT (Async Firestore).
- *
- * ATURAN UTAMA (jangan diubah tanpa sadar implikasinya):
- * Total terkumpul = SUM nominal_tagihan dari semua pembayaran berstatus 'lunas',
- * baik yang dibayar cash maupun transfer yang sudah dikonfirmasi.
- * Pembayaran berstatus 'belum' atau 'menunggu_konfirmasi' TIDAK dihitung.
- *
- * Split:
- *   Kas RT  = 15% dari total_terkumpul
- *   Setor RW = 85% dari total_terkumpul
- */
-
 import { getAllTagihan, getAllPembayaran } from './tagihan.js';
 
 /**

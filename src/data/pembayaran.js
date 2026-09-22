@@ -1,15 +1,3 @@
-/**
- * pembayaran.js
- * Logika pencatatan dan konfirmasi pembayaran (Async Firestore).
- *
- * Alur status pembayaran:
- *   'belum'
- *     → [cash]    → langsung 'lunas'
- *     → [transfer] → 'menunggu_konfirmasi'
- *                      → [admin konfirmasi] → 'lunas'
- *     → [reset]   → kembali ke 'belum' (jika perlu dibatalkan)
- */
-
 import { getItem, saveDoc } from './storage.js';
 
 const KEY = 'pembayaran';

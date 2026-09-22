@@ -6,7 +6,6 @@ import Riwayat from './pages/Riwayat.jsx';
 import Laporan from './pages/Laporan.jsx';
 import { AdminProvider, useAdmin } from './context/AdminContext.jsx';
 
-// Ikon SVG inline kecil — tidak perlu library ikon eksternal
 const Icon = {
   Dashboard: () => (
     <svg className="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
