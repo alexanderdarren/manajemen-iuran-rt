@@ -1,4 +1,4 @@
-import { getItem, saveDocsBatch } from './storage.js';
+import { getItem, saveDocsBatch, deleteDocsBatch } from './storage.js';
 import { getWarga } from './warga.js';
 
 const KEY_TAGIHAN = 'tagihan';
@@ -145,4 +145,30 @@ export async function getDaftarBulanTagihan() {
     if (b.tahun !== a.tahun) return b.tahun - a.tahun;
     return b.bulan - a.bulan;
   });
+}
+
+/**
+ * Hapus / reset semua tagihan dan pembayaran untuk bulan dan tahun tertentu.
+ * Mengembalikan jumlah tagihan yang dihapus.
+ * @param {number} bulan
+ * @param {number} tahun
+ */
+export async function hapusTagihanBulan(bulan, tahun) {
+  const semuaTagihan = await getAllTagihan();
+  const tagihanBulanIni = semuaTagihan.filter(t => t.bulan === bulan && t.tahun === tahun);
+  if (tagihanBulanIni.length === 0) return 0;
+
+  const tagihanIds = new Set(tagihanBulanIni.map(t => t.id));
+
+  // Ambil semua pembayaran terkait
+  const semuaPembayaran = await getAllPembayaran();
+  const pembayaranBulanIni = semuaPembayaran.filter(p => tagihanIds.has(p.tagihan_id));
+
+  // Hapus dari Firestore / LocalStorage
+  await Promise.all([
+    deleteDocsBatch(KEY_TAGIHAN, Array.from(tagihanIds)),
+    deleteDocsBatch(KEY_PEMBAYARAN, pembayaranBulanIni.map(p => p.id)),
+  ]);
+
+  return tagihanBulanIni.length;
 }

@@ -106,6 +106,39 @@ export async function deleteDocById(collectionName, docId) {
 }
 
 /**
+ * Hapus banyak dokumen sekaligus menggunakan Firestore WriteBatch.
+ * @param {string} collectionName
+ * @param {Array<string>} docIds - array ID dokumen yang mau dihapus
+ */
+export async function deleteDocsBatch(collectionName, docIds) {
+  if (!docIds || docIds.length === 0) return;
+
+  if (!isFirebaseConfigured() || !db) {
+    const list = await getItem(collectionName, []);
+    const idSet = new Set(docIds);
+    const filtered = list.filter(item => !idSet.has(item.id));
+    localStorage.setItem(LOCAL_PREFIX + collectionName, JSON.stringify(filtered));
+    return;
+  }
+
+  try {
+    const CHUNK_SIZE = 450;
+    for (let i = 0; i < docIds.length; i += CHUNK_SIZE) {
+      const chunk = docIds.slice(i, i + CHUNK_SIZE);
+      const batch = writeBatch(db);
+      for (const id of chunk) {
+        const docRef = doc(db, collectionName, id);
+        batch.delete(docRef);
+      }
+      await batch.commit();
+    }
+  } catch (error) {
+    console.error(`Gagal batch delete dari koleksi "${collectionName}":`, error);
+    throw error;
+  }
+}
+
+/**
  * Simpan banyak dokumen sekaligus menggunakan Firestore WriteBatch.
  * Sangat efisien untuk generate tagihan & pembayaran bulanan.
  * @param {string} collectionName

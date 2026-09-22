@@ -3,6 +3,7 @@ import {
   generateTagihanBulanan,
   getTagihanDenganStatusBulan,
   isTagihanSudahGenerate,
+  hapusTagihanBulan,
 } from '../data/tagihan.js';
 import {
   catatPembayaranCash,
@@ -27,6 +28,8 @@ export default function TagihanBulanIni() {
   const [modalTransfer, setModalTransfer] = useState(null); // tagihan_id | null
   const [buktiUrl, setBuktiUrl] = useState('');
   const [pesan, setPesan] = useState('');
+  const [konfirmasiReset, setKonfirmasiReset] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const overlayMouseDownRef = useRef(false);
 
   const load = useCallback(async () => {
@@ -70,6 +73,21 @@ export default function TagihanBulanIni() {
     } finally {
       setGenerating(false);
       setSubmitting(null);
+    }
+  }
+
+  async function handleResetTagihanBulan() {
+    setResetting(true);
+    try {
+      const jumlah = await hapusTagihanBulan(bulan, tahun);
+      setPesan(`Berhasil mereset tagihan ${formatBulanTahun(bulan, tahun)}. ${jumlah} tagihan telah dihapus.`);
+      setKonfirmasiReset(false);
+      await load();
+    } catch (err) {
+      console.error('Gagal mereset tagihan:', err);
+      setPesan('Terjadi kesalahan saat mereset tagihan. Coba lagi.');
+    } finally {
+      setResetting(false);
     }
   }
 
@@ -170,14 +188,39 @@ export default function TagihanBulanIni() {
               id="btn-generate-tagihan"
               className="btn btn-primary"
               onClick={handleGenerate}
-              disabled={generating || loading}
+              disabled={generating || loading || resetting}
             >
               {generating ? 'Membuat…' : `Generate Tagihan ${namaBulan(bulan)} ${tahun}`}
             </button>
           ) : sudahGenerate ? (
-            <span style={{ fontSize: '0.82rem', color: 'var(--ink-muted)' }}>
-              Tagihan sudah di-generate
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: '0.82rem', color: 'var(--ink-muted)' }}>
+                Tagihan sudah di-generate
+              </span>
+              {isAdmin && (
+                <button
+                  id="btn-reset-tagihan-bulan"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setKonfirmasiReset(true)}
+                  disabled={loading || resetting}
+                  style={{
+                    fontSize: '0.78rem',
+                    color: 'var(--accent-danger)',
+                    borderColor: 'rgba(217,83,79,0.35)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '4px 10px',
+                  }}
+                  title="Hapus semua tagihan bulan ini agar dapat di-generate ulang"
+                >
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 4h12M5.33 4V2.67a1.33 1.33 0 0 1 1.34-1.34h2.66a1.33 1.33 0 0 1 1.34 1.34V4m2 0v9.33a1.33 1.33 0 0 1-1.34 1.34H4.67a1.33 1.33 0 0 1-1.34-1.34V4" />
+                  </svg>
+                  Reset Tagihan
+                </button>
+              )}
+            </div>
           ) : null}
         </div>
       </div>
@@ -420,6 +463,63 @@ export default function TagihanBulanIni() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Konfirmasi Reset Tagihan Bulan Ini ──────── */}
+      {isAdmin && konfirmasiReset && (
+        <div
+          className="modal-overlay"
+          onMouseDown={e => { if (e.target === e.currentTarget) overlayMouseDownRef.current = true; }}
+          onClick={e => {
+            if (overlayMouseDownRef.current && e.target === e.currentTarget) setKonfirmasiReset(false);
+            overlayMouseDownRef.current = false;
+          }}
+        >
+          <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <h2 className="modal-title" style={{ color: 'var(--accent-danger)' }}>Reset Tagihan Bulan Ini?</h2>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => setKonfirmasiReset(false)}
+                aria-label="Tutup"
+                style={{ padding: '4px 6px', lineHeight: 1 }}
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <line x1="3" y1="3" x2="13" y2="13" />
+                  <line x1="13" y1="3" x2="3" y2="13" />
+                </svg>
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: '0.88rem', color: 'var(--ink-secondary)', lineHeight: 1.5, marginBottom: 12 }}>
+                Semua data tagihan dan status pembayaran untuk <strong>{formatBulanTahun(bulan, tahun)}</strong> ({data.length} tagihan) akan dihapus.
+              </p>
+              <p style={{ fontSize: '0.82rem', color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+                Setelah direset, tombol <strong>Generate Tagihan</strong> akan muncul kembali sehingga Anda dapat membuat ulang tagihan dari awal (misal setelah mengubah nominal atau menambah warga baru).
+              </p>
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setKonfirmasiReset(false)}
+                disabled={resetting}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                id="btn-konfirmasi-hapus-tagihan"
+                className="btn btn-sm"
+                style={{ background: 'var(--accent-danger)', color: '#fff', border: 'none' }}
+                onClick={handleResetTagihanBulan}
+                disabled={resetting}
+              >
+                {resetting ? 'Mereset…' : 'Ya, Reset Tagihan'}
+              </button>
+            </div>
           </div>
         </div>
       )}
